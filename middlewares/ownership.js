@@ -3,7 +3,8 @@ function ownership(options = {}) {
     source = 'params',
     field = 'id',
     authUserField = 'id',
-    allowRoles = []
+    allowRoles = [],
+    ifMissing = 'deny'
   } = options;
 
   const sources = Array.isArray(source) ? source : [source];
@@ -27,6 +28,9 @@ function ownership(options = {}) {
     }, null);
 
     if (targetId === null || targetId === undefined) {
+      if (ifMissing === 'allow') {
+        return next();
+      }
       return res.status(400).json({ message: `Missing ownership field: ${field}` });
     }
 

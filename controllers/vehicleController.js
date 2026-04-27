@@ -20,7 +20,7 @@ const vehicleController = {
       }
 
       const vehicle = await Vehicle.create({
-        IdUsuario: data.idUsuario || req.user.id,
+        IdUsuario: req.user.id,
         Placa: data.placa,
         Tipo: data.tipo,
         Modelo: data.modelo,
