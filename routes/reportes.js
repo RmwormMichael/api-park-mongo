@@ -2,25 +2,26 @@ const express = require('express');
 const router = express.Router();
 const repCtrl = require('../controllers/reporteController');
 const authenticate = require('../middlewares/auth');
-const permit = require('../middlewares/roles'); // Si quieres restringir por roles
+const authorize = require('../middlewares/authorize');
 
 // Generar reporte (POST para crear reporte)
 router.post('/', 
-  authenticate, 
-  // permit('Administrador', 1, 'Vigilante', 5), // Opcional: restringir por rol
+  authenticate,
+  authorize('Administrador', 'Vigilante'),
   repCtrl.createAndGenerate
 );
 
 // Generar reporte (GET para consultar)
 router.get('/', 
-  authenticate, 
-  // permit('Administrador', 1, 'Vigilante', 5, 'Instructor', 2), // Opcional
+  authenticate,
+  authorize('Administrador', 'Vigilante', 'Instructor'),
   repCtrl.generateOnly
 );
 
 // Estadísticas rápidas
 router.get('/stats', 
-  authenticate, 
+  authenticate,
+  authorize('Administrador', 'Vigilante'),
   repCtrl.getStats
 );
 
