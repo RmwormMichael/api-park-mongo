@@ -6,6 +6,10 @@ const authorize = require('../middlewares/authorize');
 const ownership = require('../middlewares/ownership');
 
 router.get('/user/:userId', authenticate, authorize('Administrador', 'Instructor', 'Aprendiz', 'Visitante', 'Vigilante'), ownership({ source: 'params', field: 'userId', authUserField: 'id', allowRoles: ['Administrador'] }), notiCtrl.listForUser);
-router.patch('/:id/read', authenticate, notiCtrl.markRead);
+router.patch('/:id/read',
+  authenticate,
+  authorize('Administrador', 'Instructor', 'Aprendiz', 'Visitante', 'Vigilante'),
+  notiCtrl.markRead
+);
 
 module.exports = router;

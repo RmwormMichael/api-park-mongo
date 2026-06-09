@@ -12,7 +12,7 @@ function ownership(options = {}) {
 
   return (req, res, next) => {
     if (!req.user || req.user[authUserField] === undefined || req.user[authUserField] === null) {
-      return res.status(401).json({ message: 'No auth' });
+      return res.status(401).json({ message: 'No autenticado' });
     }
 
     const userRoleName = req.user.idRolName || req.user.NombreRol;
@@ -31,14 +31,14 @@ function ownership(options = {}) {
       if (ifMissing === 'allow') {
         return next();
       }
-      return res.status(400).json({ message: `Missing ownership field: ${field}` });
+      return res.status(400).json({ message: `Falta campo de referencia: ${field}` });
     }
 
     const authenticatedUserId = String(req.user[authUserField]);
     const resourceUserId = String(targetId);
 
     if (authenticatedUserId !== resourceUserId) {
-      return res.status(403).json({ message: 'Forbidden: not owner of resource' });
+      return res.status(403).json({ message: 'No es propietario de este recurso' });
     }
 
     return next();

@@ -1,12 +1,15 @@
 const { normalizeRole } = require('../constants/permissions');
 
 const defaultMessages = {
-  unauthorized: 'No auth',
-  forbidden: 'Forbidden: insufficient role'
+  unauthorized: 'No autenticado',
+  forbidden: 'No tiene permisos para esta acción'
 };
 
 function authorize(...allowedRoles) {
   const normalizedAllowed = allowedRoles.map(normalizeRole).filter(Boolean);
+  if (normalizedAllowed.length === 0) {
+    return (req, res, next) => res.status(500).json({ message: 'Error de configuración: lista de roles vacía' });
+  }
 
   return (req, res, next) => {
     if (!req.user) {

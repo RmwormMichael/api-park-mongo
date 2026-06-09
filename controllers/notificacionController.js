@@ -30,9 +30,22 @@ const notiController = {
   async markRead(req, res) {
     try {
       const id = req.params.id;
-      
+      const notificacion = await Notificacion.findById(id);
+
+      if (!notificacion) {
+        return res.status(404).json({ message: 'Notificación no encontrada' });
+      }
+
+      const userRoleName = req.user.idRolName || req.user.NombreRol;
+      const isAdmin = userRoleName === 'Administrador';
+      const isOwner = String(notificacion.IdUsuario) === String(req.user.id);
+
+      if (!isAdmin && !isOwner) {
+        return res.status(403).json({ message: 'No es propietario de este recurso' });
+      }
+
       await Notificacion.markRead(id);
-      
+
       res.json({ message: 'Notificación marcada como leída' });
     } catch (error) {
       console.error('Error al marcar notificación como leída:', error);
