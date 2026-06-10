@@ -3,44 +3,17 @@ const Movimiento = require('./movimientoModel');
 const Reporte = {
   async generate(fechaInicio, fechaFin, tipoVehiculo) {
     try {
-      console.log('=== DEPURACIÓN DE REPORTE ===');
-      console.log('Fecha inicio (parámetro):', fechaInicio);
-      console.log('Fecha fin (parámetro):', fechaFin);
-      console.log('Tipo vehículo:', tipoVehiculo);
+      const startDate = new Date(fechaInicio + 'T00:00:00-05:00');
+      const endDate = new Date(fechaFin + 'T23:59:59.999-05:00');
 
-      // IMPORTANTE: Ajustar para zona horaria de Colombia (UTC-5)
-      // Cuando el usuario selecciona 2025-12-20, quiere todo ese día en hora Colombia
-      const startDate = new Date(fechaInicio + 'T00:00:00-05:00'); // Inicio del día en Colombia
-      const endDate = new Date(fechaFin + 'T23:59:59.999-05:00'); // Fin del día en Colombia
-      
-      console.log('Fecha inicio (Date UTC):', startDate.toISOString());
-      console.log('Fecha fin (Date UTC):', endDate.toISOString());
-
-      // Primero, verifiquemos si hay movimientos en ese rango
       const countMovimientos = await Movimiento.countDocuments({
         fechaEntrada: {
           $gte: startDate,
           $lte: endDate
         }
       });
-      console.log(`Total de movimientos en el rango: ${countMovimientos}`);
-
-      // También contar todos los movimientos para debug
-      const totalTodos = await Movimiento.countDocuments();
-      console.log(`Total de movimientos en la BD: ${totalTodos}`);
-
-      // Ver algunos movimientos de ejemplo
-      const sampleMovimientos = await Movimiento.find()
-        .sort({ fechaEntrada: -1 })
-        .limit(3);
-      console.log('Movimientos de ejemplo:', sampleMovimientos.map(m => ({
-        id: m._id,
-        fechaEntrada: m.fechaEntrada,
-        fechaEntradaISO: m.fechaEntrada.toISOString()
-      })));
 
       if (countMovimientos === 0) {
-        console.log('⚠️ No hay movimientos en el rango especificado');
         return [];
       }
 
@@ -105,10 +78,7 @@ const Reporte = {
         }
       ];
 
-      console.log('Pipeline de reporte:', JSON.stringify(pipeline, null, 2));
-      
       const result = await Movimiento.aggregate(pipeline);
-      console.log('Resultado del reporte:', result);
       
       return result;
 
@@ -116,6 +86,34 @@ const Reporte = {
       console.error('Error en generación de reporte:', error);
       throw error;
     }
+  },
+
+  async generateSummary(fechaInicio, fechaFin) {
+    const startDate = new Date(fechaInicio + 'T00:00:00-05:00');
+    const endDate = new Date(fechaFin + 'T23:59:59.999-05:00');
+
+    const result = await Movimiento.aggregate([
+      { $match: { fechaEntrada: { $gte: startDate, $lte: endDate } } },
+      {
+        $lookup: {
+          from: 'vehicles',
+          localField: 'vehiculo',
+          foreignField: '_id',
+          as: 'vehiculoInfo'
+        }
+      },
+      { $unwind: '$vehiculoInfo' },
+      {
+        $group: {
+          _id: '$vehiculoInfo.Tipo',
+          total: { $sum: 1 }
+        }
+      },
+      { $project: { _id: 0, Tipo: '$_id', total: 1 } },
+      { $sort: { total: -1 } }
+    ]);
+
+    return result;
   }
 };
 

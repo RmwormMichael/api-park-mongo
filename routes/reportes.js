@@ -3,25 +3,26 @@ const router = express.Router();
 const repCtrl = require('../controllers/reporteController');
 const authenticate = require('../middlewares/auth');
 const authorize = require('../middlewares/authorize');
+const { reporteCreateRules, reporteGetRules, reporteStatsRules } = require('../middlewares/validators');
 
-// Generar reporte (POST para crear reporte)
 router.post('/', 
   authenticate,
   authorize('Administrador', 'Vigilante'),
+  reporteCreateRules,
   repCtrl.createAndGenerate
 );
 
-// Generar reporte (GET para consultar)
 router.get('/', 
   authenticate,
   authorize('Administrador', 'Vigilante', 'Instructor'),
+  reporteGetRules,
   repCtrl.generateOnly
 );
 
-// Estadísticas rápidas
 router.get('/stats', 
   authenticate,
   authorize('Administrador', 'Vigilante'),
+  reporteStatsRules,
   repCtrl.getStats
 );
 

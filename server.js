@@ -51,5 +51,23 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Middleware global de errores (debe ir después de todas las rutas)
+app.use((err, req, res, next) => {
+  if (err.name === 'MulterError') {
+    return res.status(400).json({ message: `Error de archivo: ${err.message}` });
+  }
+
+  if (err.name === 'CastError') {
+    return res.status(400).json({ message: 'ID inválido' });
+  }
+
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({ message: 'Error de validación' });
+  }
+
+  console.error('Error no manejado:', err);
+  res.status(500).json({ message: 'Error interno del servidor' });
+});
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

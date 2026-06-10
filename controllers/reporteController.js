@@ -55,19 +55,11 @@ const reporteController = {
         });
       }
 
-      console.log('Generando reporte con parámetros:', {
-        fechaInicio,
-        fechaFin,
-        tipoVehiculo: tipoVehiculo || 'todos'
-      });
-
       const data = await Reporte.generate(
         fechaInicio,
         fechaFin,
         tipoVehiculo || 'todos'
       );
-
-      console.log('Datos generados:', data);
 
       // Asegurarse de que los datos tengan el formato esperado por el frontend
       const formattedData = data.map(item => ({

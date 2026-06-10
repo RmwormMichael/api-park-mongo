@@ -6,9 +6,8 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGO_URI, {
       dbName: 'restapi'
     });
-    console.log('✅ MongoDB conectado');
   } catch (error) {
-    console.error('❌ Error MongoDB:', error);
+    console.error('Error MongoDB:', error);
     process.exit(1);
   }
 };

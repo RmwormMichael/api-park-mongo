@@ -6,7 +6,6 @@ let Notificacion;
 try {
   Notificacion = require('../models/notificacionModel');
 } catch (error) {
-  console.log('Modelo de notificaciones no disponible, continuando sin notificaciones');
   Notificacion = null;
 }
 
@@ -40,13 +39,12 @@ const movimientoController = {
             `Ingreso registrado para la placa ${veh.Placa}`
           );
         } catch (notifError) {
-          console.log('⚠️ No se pudo crear notificación:', notifError.message);
-          // Continuamos sin notificación, no es crítico
+          console.error('Error al crear notificación:', notifError);
         }
       }
 
       res.json({
-        message: '✅ Entrada registrada exitosamente',
+        message: 'Entrada registrada exitosamente',
         id: mov._id,
         placa: veh.Placa,
         movimiento: mov
@@ -76,7 +74,7 @@ const movimientoController = {
       // Opción 2: Por placa
       if (!movimiento && placa) {
         const veh = await Vehicle.findOne({ Placa: placa });
-        if (!veh) return res.status(404).json({ message: '❌ Placa no encontrada' });
+        if (!veh) return res.status(404).json({ message: 'Placa no encontrada' });
 
         movimiento = await Movimiento.findOne({
           vehiculo: veh._id,
@@ -84,7 +82,7 @@ const movimientoController = {
         }).sort({ fechaEntrada: -1 });
 
         if (!movimiento) {
-          return res.status(400).json({ message: '❌ No hay registro de entrada activo' });
+          return res.status(400).json({ message: 'No hay registro de entrada activo' });
         }
 
         movimiento.estado = 'fuera';
@@ -99,17 +97,17 @@ const movimientoController = {
               `Salida registrada para la placa ${veh.Placa}`
             );
           } catch (notifError) {
-            console.log('⚠️ No se pudo crear notificación:', notifError.message);
+            console.error('Error al crear notificación:', notifError);
           }
         }
       }
 
       if (!movimiento) {
-        return res.status(400).json({ message: '❌ Falta idMovimiento o placa' });
+        return res.status(400).json({ message: 'Falta idMovimiento o placa' });
       }
 
       res.json({
-        message: '✅ Salida registrada exitosamente',
+        message: 'Salida registrada exitosamente',
         id: movimiento._id,
         placa: placa || 'N/A'
       });
