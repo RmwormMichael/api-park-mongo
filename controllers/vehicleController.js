@@ -1,6 +1,6 @@
 const Vehicle = require('../models/vehicleModel');
-const path = require('path');
-const fs = require('fs');
+const vehicleSerializer = require('../serializers/vehicleSerializer');
+const { deleteFileIfExists } = require('../utils/fileUtils');
 
 const vehicleController = {
 
@@ -11,11 +11,7 @@ const vehicleController = {
 
       const exists = await Vehicle.findOne({ Placa: data.placa.toUpperCase() });
       if (exists) {
-        if (req.file) {
-          fs.unlinkSync(
-            path.join(__dirname, '..', 'uploads', 'vehicles', req.file.filename)
-          );
-        }
+        if (req.file) deleteFileIfExists('uploads/vehicles/' + req.file.filename);
         return res.status(400).json({ message: 'Placa ya registrada' });
       }
 
@@ -38,11 +34,7 @@ const vehicleController = {
 
     } catch (error) {
       console.error(error);
-      if (req.file) {
-        fs.unlinkSync(
-          path.join(__dirname, '..', 'uploads', 'vehicles', req.file.filename)
-        );
-      }
+      if (req.file) deleteFileIfExists('uploads/vehicles/' + req.file.filename);
       res.status(500).json({ message: 'Error al registrar vehículo' });
     }
   },
@@ -55,20 +47,7 @@ async listByUser(req, res) {
       .populate('IdUsuario', 'NombreCompleto Correo NombreRol')
       .sort({ Placa: 1 });
 
-    const formatted = vehicles.map(v => ({
-      IdVehiculo: v._id,
-      Placa: v.Placa,
-      Tipo: v.Tipo,
-      Modelo: v.Modelo,
-      Color: v.Color,
-      FotoVehiculo: v.FotoVehiculo,
-      NombreCompleto: v.IdUsuario?.NombreCompleto,
-      Correo: v.IdUsuario?.Correo,
-      NombreRol: v.IdUsuario?.NombreRol,
-      IdUsuario: v.IdUsuario?._id
-    }));
-
-    res.json(formatted);
+    res.json(vehicles.map(vehicleSerializer.toFullResponse));
   } catch (error) {
     res.status(500).json({ message: 'Error al cargar vehículos' });
   }
@@ -82,20 +61,7 @@ async listByUser(req, res) {
       .populate('IdUsuario', 'NombreCompleto Correo NombreRol')
       .sort({ Placa: 1 });
 
-    const formatted = vehicles.map(v => ({
-      IdVehiculo: v._id,
-      Placa: v.Placa,
-      Tipo: v.Tipo,
-      Modelo: v.Modelo,
-      Color: v.Color,
-      FotoVehiculo: v.FotoVehiculo,
-      NombreCompleto: v.IdUsuario?.NombreCompleto,
-      Correo: v.IdUsuario?.Correo,
-      NombreRol: v.IdUsuario?.NombreRol,
-      IdUsuario: v.IdUsuario?._id
-    }));
-
-    res.json(formatted);
+    res.json(vehicles.map(vehicleSerializer.toFullResponse));
   } catch (error) {
     res.status(500).json({ message: 'Error al cargar vehículos' });
   }
@@ -109,10 +75,8 @@ async listByUser(req, res) {
         return res.status(404).json({ message: 'Vehículo no encontrado' });
       }
 
-      // ⚠️ Movimientos se validan después (cuando migremos esa colección)
       if (vehicle.FotoVehiculo && vehicle.FotoVehiculo !== '/uploads/vehicles/') {
-        const filePath = path.join(__dirname, '..', vehicle.FotoVehiculo);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        deleteFileIfExists(vehicle.FotoVehiculo);
       }
 
       await vehicle.deleteOne();

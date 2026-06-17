@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 require('dotenv').config();
 const ROLES = require('../constants/roles');
+const userSerializer = require('../serializers/userSerializer');
 
 const authController = {
   async register(req, res) {
@@ -32,7 +33,7 @@ const authController = {
       Contrasena: hashed
     });
 
-    res.status(201).json({ message: 'Usuario creado', user });
+    res.status(201).json({ message: 'Usuario creado', user: userSerializer.toResponse(user) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error en registro' });
@@ -60,6 +61,7 @@ const authController = {
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
       res.json({ token, user: payload });
     } catch (err) {
+      console.error('Error en login:', err);
       res.status(500).json({ message: 'Error en login' });
     }
   }

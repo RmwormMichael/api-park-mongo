@@ -1,28 +1,17 @@
 const User = require('../models/userModel');
 const Vehicle = require('../models/vehicleModel');
-const path = require('path');
-const fs = require('fs');
+const userSerializer = require('../serializers/userSerializer');
+const vehicleSerializer = require('../serializers/vehicleSerializer');
+const { deleteFileIfExists } = require('../utils/fileUtils');
 
 
 // LISTAR USUARIOS
 exports.list = async (req, res) => {
   try {
     const users = await User.find().select('-Contrasena');
-    
-    // Mapear _id a IdUsuario para mantener consistencia con el frontend
-    const formattedUsers = users.map(user => ({
-      IdUsuario: user._id,  // Esto es clave
-      IdRol: user.IdRol,
-      NombreRol: user.NombreRol,
-      NombreCompleto: user.NombreCompleto,
-      Documento: user.Documento,
-      Correo: user.Correo,
-      Telefono: user.Telefono,
-      FotoPerfil: user.FotoPerfil,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    }));
-    
+
+    const formattedUsers = users.map(userSerializer.toResponse);
+
     res.json(formattedUsers);
   } catch (error) {
     res.status(500).json({ message: 'Error al listar usuarios' });
@@ -34,22 +23,8 @@ exports.get = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-Contrasena');
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
-    
-    // Formatear respuesta
-    const formattedUser = {
-      IdUsuario: user._id,  // Esto es clave
-      IdRol: user.IdRol,
-      NombreRol: user.NombreRol,
-      NombreCompleto: user.NombreCompleto,
-      Documento: user.Documento,
-      Correo: user.Correo,
-      Telefono: user.Telefono,
-      FotoPerfil: user.FotoPerfil,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    };
-    
-    res.json(formattedUser);
+
+    res.json(userSerializer.toResponse(user));
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener usuario' });
   }
@@ -68,14 +43,13 @@ exports.update = async (req, res) => {
 
     if (req.file) {
       if (user.FotoPerfil && user.FotoPerfil !== '/uploads/') {
-        const oldPath = path.join(__dirname, '..', user.FotoPerfil);
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        deleteFileIfExists(user.FotoPerfil);
       }
       user.FotoPerfil = `/uploads/${req.file.filename}`;
     }
 
     await user.save();
-    res.json(user);
+    res.json(userSerializer.toResponse(user));
   } catch (error) {
     res.status(500).json({ message: 'Error al actualizar usuario' });
   }
@@ -88,8 +62,7 @@ exports.remove = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
     if (user.FotoPerfil && user.FotoPerfil !== '/uploads/') {
-      const filePath = path.join(__dirname, '..', user.FotoPerfil);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      deleteFileIfExists(user.FotoPerfil);
     }
 
     await user.deleteOne();
@@ -114,19 +87,7 @@ exports.getUserVehicles = async (req, res) => {
     // Buscar vehículos del usuario
     const vehicles = await Vehicle.find({ IdUsuario: userId });
 
-    // Formatear respuesta
-    const formattedVehicles = vehicles.map(v => ({
-      IdVehiculo: v._id,
-      Placa: v.Placa,
-      Tipo: v.Tipo,
-      Modelo: v.Modelo,
-      Color: v.Color,
-      FotoVehiculo: v.FotoVehiculo,
-      createdAt: v.createdAt,
-      updatedAt: v.updatedAt
-    }));
-
-    res.json(formattedVehicles);
+    res.json(vehicles.map(vehicleSerializer.toSimpleResponse));
   } catch (error) {
     console.error('Error al obtener vehículos del usuario:', error);
     res.status(500).json({ message: 'Error al cargar vehículos del usuario' });

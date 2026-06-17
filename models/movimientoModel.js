@@ -28,6 +28,10 @@ const MovimientoSchema = new mongoose.Schema({
 
 // Índices para mejor rendimiento
 MovimientoSchema.index({ vehiculo: 1, estado: 1 });
+MovimientoSchema.index({ vehiculo: 1, estado: 1 }, {
+  unique: true,
+  partialFilterExpression: { estado: 'dentro' }
+});
 MovimientoSchema.index({ fechaEntrada: -1 });
 MovimientoSchema.index({ estado: 1, fechaEntrada: -1 });
 

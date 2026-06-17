@@ -1,7 +1,9 @@
+const { ROLE_ALIASES } = require('./permissions');
+
 module.exports = {
-  1: 'Administrador',
-  2: 'Instructor',
-  3: 'Aprendiz',
-  4: 'Visitante',
-  5: 'Vigilante'
+  1: ROLE_ALIASES[1],
+  2: ROLE_ALIASES[2],
+  3: ROLE_ALIASES[3],
+  4: ROLE_ALIASES[4],
+  5: ROLE_ALIASES[5]
 };

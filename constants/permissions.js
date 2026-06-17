@@ -35,5 +35,6 @@ function normalizeRole(input) {
 module.exports = {
   ROLE_IDS,
   ROLE_NAMES,
+  ROLE_ALIASES,
   normalizeRole
 };
