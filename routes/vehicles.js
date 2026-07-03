@@ -4,7 +4,7 @@ const vehicleCtrl = require('../controllers/vehicleController');
 const authenticate = require('../middlewares/auth');
 const authorize = require('../middlewares/authorize');
 const uploadVehicle = require('../middlewares/uploadVehicle');
-const { vehicleRules, vehicleDeleteRules } = require('../middlewares/validators');
+const { vehicleRules, vehicleDeleteRules, vehicleUpdateRules } = require('../middlewares/validators');
 
 router.post(
   '/',
@@ -18,6 +18,16 @@ router.post(
 router.get('/user', authenticate, authorize('Administrador', 'Instructor', 'Aprendiz', 'Visitante', 'Vigilante'), vehicleCtrl.listByUser);
 
 router.get('/', authenticate, authorize('Administrador', 'Vigilante'), vehicleCtrl.listAll);
+
+router.get('/:id', authenticate, authorize('Administrador', 'Instructor', 'Aprendiz', 'Visitante', 'Vigilante'), vehicleCtrl.getById);
+
+router.put('/:id',
+  authenticate,
+  authorize('Administrador', 'Instructor', 'Aprendiz', 'Visitante'),
+  uploadVehicle.single('fotoVehiculo'),
+  vehicleUpdateRules,
+  vehicleCtrl.update
+);
 
 router.delete('/:id', authenticate, authorize('Administrador', 'Vigilante'), vehicleDeleteRules, vehicleCtrl.remove);
 

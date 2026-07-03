@@ -114,6 +114,50 @@ const Reporte = {
     ]);
 
     return result;
+  },
+
+  async generateDetailed(fechaInicio, fechaFin, tipoVehiculo) {
+    const startDate = new Date(fechaInicio + 'T00:00:00-05:00');
+    const endDate = new Date(fechaFin + 'T23:59:59.999-05:00');
+
+    const pipeline = [
+      { $match: { fechaEntrada: { $gte: startDate, $lte: endDate } } },
+      {
+        $lookup: {
+          from: 'vehicles',
+          localField: 'vehiculo',
+          foreignField: '_id',
+          as: 'vehiculoInfo'
+        }
+      },
+      { $unwind: '$vehiculoInfo' },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'vehiculoInfo.IdUsuario',
+          foreignField: '_id',
+          as: 'propietarioInfo'
+        }
+      },
+      { $unwind: { path: '$propietarioInfo', preserveNullAndEmptyArrays: true } },
+      ...(tipoVehiculo && tipoVehiculo !== 'todos' ? [{
+        $match: { 'vehiculoInfo.Tipo': tipoVehiculo }
+      }] : []),
+      {
+        $project: {
+          _id: 0,
+          placa: '$vehiculoInfo.Placa',
+          tipoVehiculo: '$vehiculoInfo.Tipo',
+          propietario: { $ifNull: ['$propietarioInfo.NombreCompleto', 'No registrado'] },
+          fechaEntrada: 1,
+          fechaSalida: 1,
+          estado: 1
+        }
+      },
+      { $sort: { fechaEntrada: -1 } }
+    ];
+
+    return await Movimiento.aggregate(pipeline);
   }
 };
 

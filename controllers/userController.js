@@ -1,9 +1,45 @@
+const bcrypt = require('bcrypt');
 const User = require('../models/userModel');
 const Vehicle = require('../models/vehicleModel');
+const ROLES = require('../constants/roles');
 const userSerializer = require('../serializers/userSerializer');
 const vehicleSerializer = require('../serializers/vehicleSerializer');
 const { deleteFileIfExists } = require('../utils/fileUtils');
 
+
+// CREAR USUARIO (solo Administrador)
+exports.create = async (req, res) => {
+  try {
+    const { idRol, nombreCompleto, documento, correo, telefono, contrasena } = req.body;
+
+    const allowedRoles = [2, 3, 4, 5];
+    if (!allowedRoles.includes(idRol)) {
+      return res.status(403).json({ message: 'Rol no permitido' });
+    }
+
+    const exists = await User.findOne({ Correo: correo });
+    if (exists) {
+      return res.status(400).json({ message: 'El correo ya está registrado' });
+    }
+
+    const hashed = await bcrypt.hash(contrasena, 10);
+
+    const user = await User.create({
+      IdRol: idRol,
+      NombreRol: ROLES[idRol],
+      NombreCompleto: nombreCompleto,
+      Documento: documento,
+      Correo: correo,
+      Telefono: telefono,
+      Contrasena: hashed
+    });
+
+    res.status(201).json({ message: 'Usuario creado', user: userSerializer.toResponse(user) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error al crear usuario' });
+  }
+};
 
 // LISTAR USUARIOS
 exports.list = async (req, res) => {

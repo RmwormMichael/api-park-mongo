@@ -93,8 +93,8 @@ const movimientoService = {
 
   if (start && end) {
 
-    const startDate = new Date(start);
-    const endDate = new Date(`${end}T23:59:59.999Z`);
+    const startDate = new Date(`${start}T00:00:00-05:00`);
+    const endDate = new Date(`${end}T23:59:59.999-05:00`);
 
     dateFilter.fechaEntrada = {
       $gte: startDate,

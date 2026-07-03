@@ -13,7 +13,7 @@ const registerRules = [
   body('documento').trim().notEmpty().withMessage('El documento es requerido'),
   body('correo').isEmail().withMessage('Correo electrónico inválido').normalizeEmail(),
   body('contrasena').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
-  body('idRol').isIn([2, 3, 4]).withMessage('Rol no permitido').toInt(),
+  body('idRol').isIn([3, 4]).withMessage('Rol no permitido').toInt(),
   body('telefono').optional({ values: 'falsy' }).trim(),
   validateResult
 ];
@@ -79,8 +79,25 @@ const reporteStatsRules = [
   validateResult
 ];
 
+const reporteDetalleRules = [
+  query('fechaInicio').notEmpty().withMessage('La fecha de inicio es requerida').matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Fecha de inicio inválida (formato YYYY-MM-DD)'),
+  query('fechaFin').notEmpty().withMessage('La fecha de fin es requerida').matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Fecha de fin inválida (formato YYYY-MM-DD)'),
+  query('tipoVehiculo').optional({ values: 'falsy' }).trim(),
+  validateResult
+];
+
 const userIdRules = [
   param('id').isMongoId().withMessage('ID de usuario inválido'),
+  validateResult
+];
+
+const userCreateRules = [
+  body('idRol').isIn([2, 3, 4, 5]).withMessage('Rol no permitido').toInt(),
+  body('nombreCompleto').trim().notEmpty().withMessage('El nombre completo es requerido'),
+  body('documento').trim().notEmpty().withMessage('El documento es requerido'),
+  body('correo').isEmail().withMessage('Correo electrónico inválido').normalizeEmail(),
+  body('contrasena').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
+  body('telefono').optional({ values: 'falsy' }).trim(),
   validateResult
 ];
 
@@ -103,6 +120,15 @@ const vehicleDeleteRules = [
   validateResult
 ];
 
+const vehicleUpdateRules = [
+  param('id').isMongoId().withMessage('ID de vehículo inválido'),
+  body('placa').optional({ values: 'falsy' }).trim().isLength({ min: 3 }).withMessage('La placa debe tener al menos 3 caracteres'),
+  body('tipo').optional({ values: 'falsy' }).trim(),
+  body('modelo').optional({ values: 'falsy' }).trim(),
+  body('color').optional({ values: 'falsy' }).trim(),
+  validateResult
+];
+
 module.exports = {
   validateResult,
   registerRules,
@@ -116,8 +142,11 @@ module.exports = {
   reporteCreateRules,
   reporteGetRules,
   reporteStatsRules,
+  reporteDetalleRules,
   userIdRules,
+  userCreateRules,
   userUpdateRules,
   userDeleteRules,
-  vehicleDeleteRules
+  vehicleDeleteRules,
+  vehicleUpdateRules
 };

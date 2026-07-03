@@ -108,6 +108,33 @@ const reporteController = {
         message: 'Error al obtener estadísticas' 
       });
     }
+  },
+
+  async generateDetailed(req, res) {
+    try {
+      const { fechaInicio, fechaFin, tipoVehiculo } = req.query;
+
+      if (!fechaInicio || !fechaFin) {
+        return res.status(400).json({
+          message: 'Los parámetros fechaInicio y fechaFin son requeridos en la consulta'
+        });
+      }
+
+      const data = await Reporte.generateDetailed(
+        fechaInicio,
+        fechaFin,
+        tipoVehiculo || 'todos'
+      );
+
+      res.json(data);
+
+    } catch (error) {
+      console.error('Error en generateDetailed:', error);
+      res.status(500).json({
+        message: 'Error al generar reporte detallado',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
   }
 };
 

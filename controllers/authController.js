@@ -11,7 +11,7 @@ const authController = {
     const { idRol, nombreCompleto, documento, correo, telefono, contrasena } = req.body;
 
     // 🔒 Roles permitidos desde frontend
-    const allowedRoles = [2, 3, 4];
+    const allowedRoles = [3, 4];
     if (!allowedRoles.includes(idRol)) {
       return res.status(403).json({ message: 'Rol no permitido' });
     }

@@ -3,7 +3,7 @@ const router = express.Router();
 const repCtrl = require('../controllers/reporteController');
 const authenticate = require('../middlewares/auth');
 const authorize = require('../middlewares/authorize');
-const { reporteCreateRules, reporteGetRules, reporteStatsRules } = require('../middlewares/validators');
+const { reporteCreateRules, reporteGetRules, reporteStatsRules, reporteDetalleRules } = require('../middlewares/validators');
 
 router.post('/', 
   authenticate,
@@ -24,6 +24,13 @@ router.get('/stats',
   authorize('Administrador', 'Vigilante'),
   reporteStatsRules,
   repCtrl.getStats
+);
+
+router.get('/detalle', 
+  authenticate,
+  authorize('Administrador', 'Vigilante'),
+  reporteDetalleRules,
+  repCtrl.generateDetailed
 );
 
 module.exports = router;
